@@ -325,13 +325,10 @@ const deleted = async (rawData) => {
     };
   }
 };
-const getAvailableSlots = (bookedSlots, openTime, closeTime) => {
-  // console.log(bookedSlots);
-
+const getAvailableSlots = (BookingDate, bookedSlots, openTime, closeTime) => {
   let availableSlots = [];
-
-  let currentSlot = moment(openTime, "HH:mm");
-  const endOfDay = moment(closeTime, "HH:mm");
+  let currentSlot = moment(`${BookingDate} ${openTime}`, "YYYY-MM-DD HH:mm");
+  const endOfDay = moment(`${BookingDate} ${closeTime}`, "YYYY-MM-DD HH:mm");
 
   // Nếu không có slot đã đặt, trả về toàn bộ khoảng thời gian
   if (bookedSlots.length === 0) {
@@ -347,6 +344,7 @@ const getAvailableSlots = (bookedSlots, openTime, closeTime) => {
 
   // Lấy khung giờ trống trước khung giờ đã đặt đầu tiên
   if (currentSlot.isBefore(bookedSlots[0].StartTime)) {
+    console.log(bookedSlots[0].StartTime);
     availableSlots.push({
       StartTime: currentSlot.format("HH:mm"),
       EndTime: bookedSlots[0].StartTime.format("HH:mm"),
@@ -419,7 +417,7 @@ const getAvailableTimeSlots = async (rawData) => {
         $gte: startOfDay,
         $lte: endOfDay,
       },
-      Status: { $ne: "da_huy" }, // Chỉ lấy đơn đặt không bị hủy
+      Status: { $ne: "cancel" }, // Chỉ lấy đơn đặt không bị hủy
     }).select("StartTime EndTime");
 
     // Lấy các giờ đã hủy cho sân trong ngày được chọn
@@ -429,7 +427,7 @@ const getAvailableTimeSlots = async (rawData) => {
         $gte: startOfDay,
         $lte: endOfDay,
       },
-      Status: "da_huy", // Chỉ lấy đơn hủy
+      Status: "cancel", // Chỉ lấy đơn hủy
     }).select("StartTime EndTime");
 
     // Chuyển các giờ đã đặt sang định dạng moment
@@ -450,11 +448,11 @@ const getAvailableTimeSlots = async (rawData) => {
 
     // Tính toán các khung giờ trống, bao gồm cả các đơn đã hủy
     const availableSlots = getAvailableSlots(
+      BookingDate,
       combinedSlots,
       openTime,
       closeTime
     );
-    console.log("AvailableSlots", availableSlots);
 
     return {
       EM: "Lấy giờ trống thành công",
@@ -515,6 +513,7 @@ const getFieldsWithAvailableSlots = async (rawData) => {
 
       // Tính toán các khung giờ trống cho từng sân
       const availableSlots = getAvailableSlots(
+        BookingDate,
         formattedBookedSlots,
         openTime,
         closeTime
