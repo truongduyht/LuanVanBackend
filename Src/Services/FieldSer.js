@@ -502,7 +502,7 @@ const getFieldsWithAvailableSlots = async (rawData) => {
           $gte: startOfDay.toDate(),
           $lte: endOfDay.toDate(),
         },
-        Status: { $ne: "da_huy" }, // Chỉ lấy đơn đặt không bị hủy
+        Status: { $ne: "cancel" }, // Chỉ lấy đơn đặt không bị hủy
       }).select("StartTime EndTime");
 
       // Chuyển các giờ đã đặt sang định dạng moment
