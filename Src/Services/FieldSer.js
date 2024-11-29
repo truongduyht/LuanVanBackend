@@ -157,7 +157,6 @@ const updateFieldStatus = async (id, status) => {
 
 const getFieldWithPagination = async (rawData) => {
   const { page, limit, sort, type, BookingDate, StartTime, EndTime } = rawData;
-  console.log("Data Filter", rawData);
 
   try {
     // Khởi tạo điều kiện tìm kiếm và sắp xếp
@@ -267,7 +266,6 @@ const getFieldWithPagination = async (rawData) => {
 
 const readField = async (rawData) => {
   try {
-    console.log(rawData);
     const exitProduct = await exitFieldById(rawData.id);
     if (!exitProduct) {
       return {
@@ -351,8 +349,6 @@ const getAvailableSlots = (BookingDate, bookedSlots, openTime, closeTime) => {
     });
   }
 
-  console.log("Lấy khung giờ trống trước khung giờ đã đặt đầu tiên");
-
   // Lặp qua tất cả các khung giờ đã đặt để kiểm tra các khoảng trống
 
   if (bookedSlots.length > 1) {
@@ -378,8 +374,6 @@ const getAvailableSlots = (BookingDate, bookedSlots, openTime, closeTime) => {
       EndTime: endOfDay.format("HH:mm"),
     });
   }
-
-  console.log("cúi time >>", availableSlots);
 
   return availableSlots;
 };

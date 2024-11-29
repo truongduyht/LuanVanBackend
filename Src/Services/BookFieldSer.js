@@ -2,7 +2,6 @@ import Models from "../Models/index"; // Import mô hình User, Field, BookField
 const moment = require("moment-timezone");
 const mongoose = require("mongoose");
 import MailSer from "../Services/MailSer";
-//Update Status Booking
 const updateBookingStatus = async ({ BookingID, PaymentStatus }) => {
   try {
     // Tìm đơn đặt sân dựa trên BookingID
@@ -48,7 +47,6 @@ const updateBookingStatus = async ({ BookingID, PaymentStatus }) => {
   }
 };
 
-// Logic cho việc đặt sân và tính tiền
 const createBooking = async ({
   UserID,
   FieldID,
@@ -57,15 +55,9 @@ const createBooking = async ({
   EndTime,
 }) => {
   try {
-    console.log("Start", StartTime);
-    console.log("End", EndTime);
-
     // Chuyển đổi StartTime và EndTime thành đối tượng Date theo múi giờ Việt Nam
     const StartTimeObj = moment.tz(StartTime, "Asia/Ho_Chi_Minh").toDate();
     const EndTimeObj = moment.tz(EndTime, "Asia/Ho_Chi_Minh").toDate();
-
-    console.log("Startobj", StartTimeObj);
-    console.log("Endobj", EndTimeObj);
 
     // Kiểm tra nếu đối tượng Date không hợp lệ
     if (isNaN(StartTimeObj.getTime()) || isNaN(EndTimeObj.getTime())) {
@@ -217,15 +209,11 @@ const createBooking = async ({
 const cancelBooking = async (BookingID, UserID) => {
   try {
     // Tìm đơn đặt sân theo ID và UserID
-    console.log(BookingID);
-    console.log(UserID);
-
     const booking = await Models.BookField.findOne({ _id: BookingID, UserID });
     const detailbooking = await Models.DetailBook.findOne({
       BookingID: BookingID,
       UserID: UserID,
     });
-    console.log("DetailBooking", detailbooking);
 
     // Kiểm tra xem đơn đặt sân có tồn tại hay không
     if (!booking) {
@@ -470,7 +458,7 @@ const readPagination = async (rawData) => {
           from: "users",
           localField: "UserID",
           foreignField: "_id",
-          as: "User", // Đổi thành User để dễ hiểu
+          as: "User",
         },
       },
       {
@@ -679,7 +667,6 @@ const getTotalRevenue = async () => {
         },
       },
     ]);
-    console.log("Total Revenue Calculated:", totalRevenue[0].total);
     // Kiểm tra nếu có kết quả
     if (totalRevenue.length > 0) {
       return {
@@ -757,7 +744,6 @@ const getRevenueByField = async () => {
   }
 };
 
-// Hàm tính doanh thu theo ngày được truyền từ frontend
 const getRevenueByDate = async (BookingDate) => {
   try {
     const startOfDay = new Date(BookingDate);

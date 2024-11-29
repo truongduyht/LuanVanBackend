@@ -27,6 +27,18 @@ const checkPhone = async (PhoneNumber) => {
   }
   return true; // Có tồn tại số điện thoại
 };
+const checkmail = async (Email) => {
+  let user = null;
+
+  user = await Models.User.findOne({
+    Email: Email,
+  });
+
+  if (user === null) {
+    return false;
+  }
+  return true; // Có tồn tại số điện thoại
+};
 
 // Kiểm tra người dùng có tồn tại không
 const existCustomerByPhone = async (PhoneNumber) => {
@@ -61,9 +73,7 @@ const exitsUserByid = async (id) => {
 };
 const getUserById = async (id) => {
   try {
-    const user = await Models.User.findById(id).select("-Password"); // Ẩn mật khẩu
-    console.log(user);
-
+    const user = await Models.User.findById(id).select("-Password");
     return user;
   } catch (error) {
     console.error("Lỗi khi lấy thông tin người dùng:", error);
@@ -77,10 +87,17 @@ const registerNewUser = async (rawUserData) => {
   try {
     // B1
     let PhoneExits = await checkPhone(PhoneNumber);
-
+    let MailExits = await checkmail(Email);
     if (PhoneExits === true) {
       return {
         EM: "Số điện thoại đã tồn tại !!!",
+        EC: -1,
+        DT: [],
+      };
+    }
+    if (MailExits === true) {
+      return {
+        EM: "Email đã tồn tại !!!",
         EC: -1,
         DT: [],
       };
