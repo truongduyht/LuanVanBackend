@@ -157,6 +157,7 @@ const updateFieldStatus = async (id, status) => {
 
 const getFieldWithPagination = async (rawData) => {
   const { page, limit, sort, type, BookingDate, StartTime, EndTime } = rawData;
+  console.log("Start and End", StartTime, EndTime);
 
   try {
     // Khởi tạo điều kiện tìm kiếm và sắp xếp
@@ -200,27 +201,39 @@ const getFieldWithPagination = async (rawData) => {
       };
     }
 
-    // Nếu có ngày và thời gian, tiến hành lọc theo DetailBook
-    const startOfDay = new Date(BookingDate);
-    const endOfDay = new Date(BookingDate);
-    endOfDay.setHours(23, 59, 59, 999);
+    // Format lại thời gian StartTime và EndTime, chỉ lấy phần giờ và phút
+    const startTimeFormatted = moment(StartTime).format("HH:mm");
+    const endTimeFormatted = moment(EndTime).format("HH:mm");
+    console.log(
+      "Formatted Start and End",
+      startTimeFormatted,
+      endTimeFormatted
+    );
 
-    // Chuyển đổi StartTime và EndTime thành đối tượng Date
-    const start = moment(StartTime, "HH:mm").toDate();
-    const end = moment(EndTime, "HH:mm").toDate();
+    // Kết hợp BookingDate với StartTime và EndTime (giữ nguyên múi giờ)
+    const start = moment(
+      `${BookingDate} ${startTimeFormatted}`,
+      "YYYY-MM-DD HH:mm"
+    ).toDate();
+    const end = moment(
+      `${BookingDate} ${endTimeFormatted}`,
+      "YYYY-MM-DD HH:mm"
+    ).toDate();
+
+    console.log("Start and End in UTC:", start, end);
 
     // Tìm các DetailBook không khả dụng trong khoảng thời gian này
     const unavailableDetails = await Models.DetailBook.find({
       BookingDate: {
-        $gte: startOfDay,
-        $lte: endOfDay,
+        $gte: moment.utc(BookingDate).startOf("day").toDate(), // Bắt đầu từ đầu ngày (UTC)
+        $lte: moment.utc(BookingDate).endOf("day").toDate(), // Kết thúc vào cuối ngày (UTC)
       },
-      $or: [
+      $and: [
         {
-          StartTime: { $lt: end }, // Nếu thời gian bắt đầu nhỏ hơn thời gian kết thúc được chọn
+          StartTime: { $lt: end }, // Bắt đầu trước thời gian kết thúc của người dùng
         },
         {
-          EndTime: { $gt: start }, // Nếu thời gian kết thúc lớn hơn thời gian bắt đầu được chọn
+          EndTime: { $gt: start }, // Kết thúc sau thời gian bắt đầu của người dùng
         },
       ],
     }).populate("FieldID"); // Populate để lấy thông tin sân tương ứng
@@ -252,7 +265,13 @@ const getFieldWithPagination = async (rawData) => {
     return {
       EM: "Lấy dữ liệu thành công",
       EC: 0,
-      DT: { pagination, meta, BookingDate, StartTime, EndTime },
+      DT: {
+        pagination,
+        meta,
+        BookingDate,
+        StartTime: startTimeFormatted,
+        EndTime: endTimeFormatted,
+      },
     };
   } catch (error) {
     console.log(">>> error", error);
